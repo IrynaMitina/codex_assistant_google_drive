@@ -11,6 +11,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      DEBUG: false
+      LOG_LEVEL: INFO
+      DATABASE_URL_TEMPLATE: sqlite+aiosqlite:///./test_drive.db
+      STORAGE_DIR: ./test_storage
+      JWT_SECRET_KEY: test-secret-key
+      JWT_ALGORITHM: HS256
 
     steps:
       - name: Check out repository
