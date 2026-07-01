@@ -34,6 +34,11 @@ class File(Base):
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     storage_key: Mapped[str] = mapped_column(String(1024), nullable=False)  # key to store file in storage backend (e.g. S3)
     checksum: Mapped[str | None] = mapped_column(String(128))  # fingerprint for verification & deduplication
+    shared_link_token: Mapped[str | None] = mapped_column(
+        String(64),
+        unique=True,
+        index=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

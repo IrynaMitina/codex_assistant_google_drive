@@ -25,6 +25,11 @@ class FileRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SharedLinkRead(BaseModel):
+    token: str
+    url_path: str
+
+
 class FolderContents(BaseModel):
     folders: list[FolderRead]
     files: list[FileRead]
