@@ -1,5 +1,6 @@
 # app/services/files.py
 import os
+import secrets
 import uuid
 
 from fastapi import HTTPException, UploadFile
@@ -79,6 +80,66 @@ async def get_file_for_download(
         raise HTTPException(status_code=404, detail="Stored file missing")
 
     return db_file
+
+
+async def create_shared_link(
+    db: AsyncSession,
+    current_user: User,
+    file_id: int,
+) -> str:
+    db_file = await db.get(File, file_id)
+
+    if not db_file or db_file.deleted_at:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if db_file.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only file owner can share link")
+
+    if not db_file.shared_link_token:
+        db_file.shared_link_token = secrets.token_urlsafe(32)
+        await db.commit()
+        await db.refresh(db_file)
+
+    return db_file.shared_link_token
+
+
+async def get_file_for_shared_link_download(
+    db: AsyncSession,
+    token: str,
+) -> File:
+    from sqlalchemy import select
+
+    result = await db.scalars(
+        select(File).where(
+            File.shared_link_token == token,
+        )
+    )
+    db_file = result.first()
+
+    if not db_file or db_file.deleted_at:
+        raise HTTPException(status_code=404, detail="Shared link not found")
+
+    if not os.path.exists(db_file.storage_key):
+        raise HTTPException(status_code=404, detail="Stored file missing")
+
+    return db_file
+
+
+async def revoke_shared_link(
+    db: AsyncSession,
+    current_user: User,
+    file_id: int,
+) -> None:
+    db_file = await db.get(File, file_id)
+
+    if not db_file or db_file.deleted_at:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if db_file.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only file owner can revoke shared link")
+
+    db_file.shared_link_token = None
+    await db.commit()
 
 
 async def delete_file(
