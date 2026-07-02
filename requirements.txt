@@ -5,6 +5,7 @@ fastapi
 uvicorn 
 aiofiles 
 python-multipart
+boto3
 python-jose[cryptography] 
 passlib[bcrypt]
 pytest 

@@ -1,5 +1,3 @@
-# app/services/files.py
-import os
 import secrets
 import uuid
 
@@ -9,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.file import File
 from app.models.user import User
 from app.services.access import has_access
-from app.services.storage import STORAGE_DIR, save_upload_file, delete_storage_file
+from app.services.storage import delete_storage_file, save_upload_file, storage_file_exists
 
 
 async def upload_file(
@@ -30,19 +28,15 @@ async def upload_file(
 
     file_uuid = str(uuid.uuid4())
 
-    storage_key = os.path.join(
-        STORAGE_DIR,
-        str(current_user.id),
-        file_uuid,
-        upload.filename or "uploaded_file",
-    )
+    filename = upload.filename or "uploaded_file"
+    storage_key = f"{current_user.id}/{file_uuid}/{filename}"
 
     size_bytes = await save_upload_file(upload, storage_key)
 
     db_file = File(
         owner_id=current_user.id,
         folder_id=folder_id,
-        name=upload.filename or "uploaded_file",
+        name=filename,
         mime_type=upload.content_type or "application/octet-stream",
         size_bytes=size_bytes,
         storage_key=storage_key,
@@ -76,7 +70,7 @@ async def get_file_for_download(
     if not db_file or db_file.deleted_at:
         raise HTTPException(status_code=404, detail="File not found")
 
-    if not os.path.exists(db_file.storage_key):
+    if not await storage_file_exists(db_file.storage_key):
         raise HTTPException(status_code=404, detail="Stored file missing")
 
     return db_file
@@ -119,7 +113,7 @@ async def get_file_for_shared_link_download(
     if not db_file or db_file.deleted_at:
         raise HTTPException(status_code=404, detail="Shared link not found")
 
-    if not os.path.exists(db_file.storage_key):
+    if not await storage_file_exists(db_file.storage_key):
         raise HTTPException(status_code=404, detail="Stored file missing")
 
     return db_file

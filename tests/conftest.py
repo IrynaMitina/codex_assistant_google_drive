@@ -99,10 +99,8 @@ def temp_storage(monkeypatch):
     temp_dir = tempfile.mkdtemp()
 
     import app.services.storage as storage
-    import app.services.files as files
 
     monkeypatch.setattr(storage, "STORAGE_DIR", temp_dir)
-    monkeypatch.setattr(files, "STORAGE_DIR", temp_dir)
 
     yield temp_dir
 
