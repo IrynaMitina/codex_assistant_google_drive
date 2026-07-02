@@ -16,7 +16,11 @@ class Settings(BaseSettings):
     database_url_template: str
     db_user: str | None = Field(default=None, repr=False)
     db_password: str | None = Field(default=None, repr=False)
-    storage_dir: str
+    storage_backend: str = "local"
+    storage_dir: str = "./storage"
+    s3_bucket_name: str | None = None
+    aws_region: str | None = None
+    aws_endpoint_url: str | None = None
     jwt_secret_key: str = Field(..., repr=False)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60

@@ -14,11 +14,22 @@ APP_ENV=dev
 DEBUG=true
 LOG_LEVEL=INFO
 DATABASE_URL_TEMPLATE=sqlite+aiosqlite:///./drive.db
+STORAGE_BACKEND=local
 STORAGE_DIR=./storage
 JWT_SECRET_KEY=dev-secret-change-me
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 EOF
+```
+
+To store uploaded file bytes in S3 instead of the local filesystem, set the
+backend and bucket name. AWS credentials are read from the standard AWS
+environment variables or credential chain used by `boto3`.
+
+```bash
+STORAGE_BACKEND=s3
+S3_BUCKET_NAME=your-drive-bucket
+AWS_REGION=us-east-1
 ```
 
 Install dependencies, migrate the database, seed demo users, and launch the API:

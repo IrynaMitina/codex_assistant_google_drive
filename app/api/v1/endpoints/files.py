@@ -1,6 +1,5 @@
 # app/api/v1/endpoints/files.py
 from fastapi import APIRouter, Depends, File as UploadFileParam, UploadFile, status
-from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -8,6 +7,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.drive import FileRead, SharedLinkRead
 from app.services import files as file_service
+from app.services.storage import storage_download_response
 
 router = APIRouter(tags=["files"])
 
@@ -43,8 +43,8 @@ async def download_file(
         file_id=file_id,
     )
 
-    return FileResponse(
-        path=db_file.storage_key,
+    return await storage_download_response(
+        storage_key=db_file.storage_key,
         filename=db_file.name,
         media_type=db_file.mime_type,
     )
@@ -78,8 +78,8 @@ async def download_shared_link(
         token=token,
     )
 
-    return FileResponse(
-        path=db_file.storage_key,
+    return await storage_download_response(
+        storage_key=db_file.storage_key,
         filename=db_file.name,
         media_type=db_file.mime_type,
     )
